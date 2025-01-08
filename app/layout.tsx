@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
 	title: "DevFlow",
 	description: "My version of stack overflow",
-	authors: [{ name: "Luis Miño Bustos" }], 
+	authors: [{ name: "Luis Miño Bustos" }],
 };
 
 export default function RootLayout({
