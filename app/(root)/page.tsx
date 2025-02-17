@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import QuestionCard from "@/components/cards/QuestionCard";
 import HomeFilter from "@/components/filters/HomeFilter";
 import LocalSearch from "@/components/search/LocalSearch";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,11 @@ const questions = [
          { _id: "1", name: "React" },
          { _id: "2", name: "JavaScript" },
       ],
-      author: { _id: "1", name: "John Doe" },
+      author: {
+         _id: "1",
+         name: "John Doe",
+         image: "/icons/avatar.svg",
+      },
       upvotes: 10,
       answers: 5,
       views: 100,
@@ -26,11 +31,11 @@ const questions = [
       title: "How to learn JavaScript?",
       description: "I want to learn JavaScript. Can anyone help me?",
       tags: [{ _id: "1", name: "JavaScript" }],
-      author: { _id: "1", name: "John Doe" },
+      author: { _id: "1", name: "John Doe", image: "/icons/avatar.svg" },
       upvotes: 10,
       answers: 5,
       views: 100,
-      createdAt: new Date(),
+      createdAt: new Date("06/11/2024"),
    },
 ];
 
@@ -42,7 +47,7 @@ interface SearchParams {
 const Home = async ({ searchParams }: SearchParams) => {
    const { query = "", filter = "" } = await searchParams;
 
-   // !DUMMY DATA USAGE
+   // !DUMMY DATA USAGE Remove this when API is ready
    const filterQuestions = questions.filter((question) => {
       const matchesQuery = question.title
          .toLowerCase()
@@ -76,7 +81,10 @@ const Home = async ({ searchParams }: SearchParams) => {
          <HomeFilter />
          <div className="mt-10 flex w-full flex-col gap-6">
             {filterQuestions.map((question) => (
-               <h1 key={question._id}>{question.title}</h1>
+               <QuestionCard
+                  key={question._id}
+                  question={question}
+               />
             ))}
          </div>
       </>
