@@ -1,7 +1,9 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import React from "react";
+import { MDXEditorMethods } from "@mdxeditor/editor";
+import dynamic from "next/dynamic";
+import { useRef } from "react";
 import { useForm } from "react-hook-form";
 
 import { AskQuestionSchema } from "@/lib/validations";
@@ -18,7 +20,14 @@ import {
 } from "../ui/form";
 import { Input } from "../ui/input";
 
+const Editor = dynamic(() => import("@/components/editor/Editor"), {
+   // Make sure we turn SSR off to avoid hydration mismatch
+   ssr: false,
+});
+
 const QuestionForm = () => {
+   const editorRef = useRef<MDXEditorMethods>(null);
+
    const form = useForm({
       resolver: zodResolver(AskQuestionSchema),
       defaultValues: {
@@ -77,7 +86,11 @@ const QuestionForm = () => {
                      </FormLabel>
                      <FormControl>
                         {/* Editor component  */}
-                        EDITOR COMPONENT
+                        <Editor
+                           value={field.value}
+                           editorRef={editorRef}
+                           fieldChange={field.onChange}
+                        />
                      </FormControl>
                      <FormDescription className="body-regular mt-2.5 text-light-500">
                         Introduce the problem and expand on what you&apos;ve put
