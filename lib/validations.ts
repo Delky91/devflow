@@ -1,5 +1,7 @@
+// Description: This file contains the zod validation schemas for the sign-in, sign-up, and ask question forms.
 import { z } from "zod";
 
+// Define the schema for the sign-in form
 export const SignInSchema = z.object({
    email: z
       .string()
@@ -12,6 +14,7 @@ export const SignInSchema = z.object({
       .max(20, { message: "Password must be at most 20 characters long." }),
 });
 
+// Define the schema for the sign-up form
 export const SignUpSchema = z.object({
    username: z
       .string()
@@ -51,4 +54,23 @@ export const SignUpSchema = z.object({
       .regex(/[^a-zA-Z0-9]/, {
          message: "Password must contain at least one special character.",
       }),
+});
+
+// Define the schema for the ask question form
+export const AskQuestionSchema = z.object({
+   title: z
+      .string()
+      .min(5, { message: "Title is required." })
+      .max(100, { message: "Title cannot exceed 100 characters." }),
+
+   content: z.string().min(1, { message: "Content is required." }),
+   tags: z
+      .array(
+         z
+            .string()
+            .min(1, { message: "Tag is required." })
+            .max(30, { message: "Tag cannot exceed 30 characters." })
+      )
+      .min(1, { message: "At least one tag is required." })
+      .max(3, { message: "Cannot add more than 3 tags." }),
 });
