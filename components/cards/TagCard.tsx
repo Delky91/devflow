@@ -57,11 +57,7 @@ const TagCard = ({
    // TODO maybe change it so if compact dont show image and add another if to handle the isButton case
    if (compact) {
       return isButton ? (
-         <button
-            type="button"
-            className="flex justify-between gap-2">
-            {content}
-         </button>
+         <span className="flex justify-between gap-2">{content}</span>
       ) : (
          <Link
             href={ROUTES.TAGS(_id)}

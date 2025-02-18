@@ -39,7 +39,7 @@ const QuestionForm = () => {
       },
    });
 
-   const handleCreateQuestion = (data: unknown) => {
+   const handleCreateQuestion = (data: z.infer<typeof AskQuestionSchema>) => {
       console.log(data);
    };
 
@@ -91,7 +91,7 @@ const QuestionForm = () => {
          <form
             onSubmit={form.handleSubmit(handleCreateQuestion)}
             className="flex w-full flex-col gap-10">
-            {/* Ttile INPUT */}
+            {/* title INPUT */}
             <FormField
                control={form.control}
                name="title"
@@ -103,7 +103,6 @@ const QuestionForm = () => {
                      </FormLabel>
                      <FormControl>
                         <Input
-                           required
                            type="text"
                            placeholder="Enter your question title"
                            className="paragraph-regular no-focus background-light700_dark300 light-border-2 text-dark300_light700 min-h-[56px] border"
@@ -157,7 +156,6 @@ const QuestionForm = () => {
                      <FormControl>
                         <div>
                            <Input
-                              required
                               type="text"
                               placeholder="Add tags..."
                               onKeyDown={(e) => handleInputKeyDown(e, field)}
