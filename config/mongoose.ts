@@ -1,6 +1,6 @@
 import mongoose, { Mongoose } from "mongoose";
 
-import { mongoDBUri } from "../config/envConfig";
+import { mongoDBUri } from "./envConfig";
 
 // const MONGO_DB_URI =
 //    process.env.MONGO_DB_URI || "mongodb://localhost:27017/test";
