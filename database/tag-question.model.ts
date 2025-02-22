@@ -1,9 +1,12 @@
-import { model, models, Schema, Types } from "mongoose";
+import { Schema, models, model, Types, Document } from "mongoose";
 
 export interface ITagQuestion {
    tag: Types.ObjectId;
    question: Types.ObjectId;
 }
+
+// in case i need to get access to the document methods like _id
+export interface ITagQuestionDoc extends ITagQuestion, Document {}
 
 const TagQuestionSchema = new Schema<ITagQuestion>(
    {
@@ -14,9 +17,7 @@ const TagQuestionSchema = new Schema<ITagQuestion>(
          required: true,
       },
    },
-   {
-      timestamps: true,
-   }
+   { timestamps: true }
 );
 
 export const TagQuestion =

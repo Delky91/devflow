@@ -1,15 +1,18 @@
-import { model, models, Schema, Types } from "mongoose";
+import { Schema, models, model, Types, Document } from "mongoose";
 
 export interface IQuestion {
    title: string;
    content: string;
-   tags: string[];
+   tags: Types.ObjectId[];
    views: number;
+   answers: number;
    upvotes: number;
    downvotes: number;
-   answers: number;
    author: Types.ObjectId;
 }
+
+// In case that  i need to get access to the document methods like _id
+export interface IQuestionDoc extends IQuestion, Document {}
 
 const QuestionSchema = new Schema<IQuestion>(
    {
@@ -17,14 +20,12 @@ const QuestionSchema = new Schema<IQuestion>(
       content: { type: String, required: true },
       tags: [{ type: Schema.Types.ObjectId, ref: "Tag" }],
       views: { type: Number, default: 0 },
+      answers: { type: Number, default: 0 }, // number of answers
       upvotes: { type: Number, default: 0 },
       downvotes: { type: Number, default: 0 },
-      answers: { type: Number, default: 0 }, // just the count of answers
       author: { type: Schema.Types.ObjectId, ref: "User", required: true },
    },
-   {
-      timestamps: true,
-   }
+   { timestamps: true }
 );
 
 export const Question =

@@ -1,4 +1,4 @@
-import { model, models, Schema, Types } from "mongoose";
+import { Schema, models, model, Types, Document } from "mongoose";
 
 export interface IAnswer {
    author: Types.ObjectId;
@@ -7,6 +7,9 @@ export interface IAnswer {
    upvotes: number;
    downvotes: number;
 }
+
+// In case that  i need to get access to the document methods like _id
+export interface IAnswerDoc extends IAnswer, Document {}
 
 const AnswerSchema = new Schema<IAnswer>(
    {
@@ -20,9 +23,7 @@ const AnswerSchema = new Schema<IAnswer>(
       upvotes: { type: Number, default: 0 },
       downvotes: { type: Number, default: 0 },
    },
-   {
-      timestamps: true,
-   }
+   { timestamps: true }
 );
 
 export const Answer = models?.Answer || model<IAnswer>("Answer", AnswerSchema);
