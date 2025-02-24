@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 
 import { RequestError, ValidationError } from "../http-errors";
+import { logger } from "../logger";
 
 export type ReponseType = "api" | "server";
 
@@ -43,6 +44,10 @@ const formatReponse = (
  */
 const handleError = (error: unknown, responseType: ReponseType = "server") => {
    if (error instanceof RequestError) {
+      logger.error(
+         { err: error },
+         `${responseType.toUpperCase()} ERROR: ${error.message}`
+      );
       return formatReponse(
          responseType,
          error.statusCode,
@@ -56,6 +61,11 @@ const handleError = (error: unknown, responseType: ReponseType = "server") => {
          error.flatten().fieldErrors as Record<string, string[]>
       );
 
+      logger.error(
+         { err: error },
+         `Validation Error: ${validationErrors.message}`
+      );
+
       return formatReponse(
          responseType,
          validationErrors.statusCode,
@@ -65,8 +75,15 @@ const handleError = (error: unknown, responseType: ReponseType = "server") => {
    }
 
    if (error instanceof Error) {
+      logger.error(error.message);
+
       return formatReponse(responseType, 500, error.message);
    }
+
+   logger.error(
+      { err: error },
+      `Unexpected Error: An unexpected error occurred.`
+   );
 
    return formatReponse(responseType, 500, "An unexpected error occurred.");
 };

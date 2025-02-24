@@ -1,11 +1,11 @@
 import mongoose, { Mongoose } from "mongoose";
 
-import { mongoDBUri } from "./envConfig";
+import { logger } from "@/lib/logger";
 
-// const MONGO_DB_URI =
-//    process.env.MONGO_DB_URI || "mongodb://localhost:27017/test";
+const MONGO_DB_URI =
+   process.env.MONGO_DB_URI || "mongodb://localhost:27017/test";
 
-if (!mongoDBUri) {
+if (!MONGO_DB_URI) {
    throw new Error("MONGO_DB_URI is not defined");
 }
 
@@ -29,6 +29,7 @@ if (!cached) {
 
 export const dbConnect = async (): Promise<Mongoose> => {
    if (cached.conn) {
+      logger.info("Using existing MongoDB connection");
       return cached.conn;
    }
 
@@ -38,14 +39,14 @@ export const dbConnect = async (): Promise<Mongoose> => {
       };
 
       cached.promise = mongoose
-         .connect(mongoDBUri, opts)
+         .connect(MONGO_DB_URI, opts)
          .then((result) => {
-            console.log("Connected to MongoDB");
+            logger.info("Connected to MongoDB");
 
             return result;
          })
          .catch((error) => {
-            console.error("Error connecting to MongoDB", error);
+            logger.error("Error connecting to MongoDB", error);
             throw error;
          });
    }
