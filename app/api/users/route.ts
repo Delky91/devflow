@@ -7,6 +7,12 @@ import { ValidationError } from "@/lib/http-errors";
 import { UserSchema } from "@/lib/validations";
 import { APIErrorResponse } from "@/types/global";
 
+/**
+ * Handles GET requests to fetch all users.
+ *
+ * @returns {Promise<NextResponse>} A promise that resolves to a NextResponse object containing the list of users and a success status.
+ * @throws {APIErrorResponse} If an error occurs during the database connection or user retrieval.
+ */
 export async function GET() {
    try {
       await dbConnect();
