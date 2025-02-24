@@ -16,14 +16,14 @@ export type ReponseType = "api" | "server";
  * @returns The formatted response object. If the response type is "api", it returns a JSON response.
  *          Otherwise, it returns an object with the status and error details.
  */
-const formatReponse = (
+const formatResponse = (
    responseType: ReponseType,
    status: number,
    message: string,
    errors?: Record<string, string[]> | undefined
 ) => {
-   const reponseContent = {
-      succes: false,
+   const responseContent = {
+      success: false,
       error: {
          message,
          details: errors,
@@ -31,8 +31,8 @@ const formatReponse = (
    };
 
    return responseType === "api"
-      ? NextResponse.json(reponseContent, { status })
-      : { status, ...reponseContent };
+      ? NextResponse.json(responseContent, { status })
+      : { status, ...responseContent };
 };
 
 /**
@@ -46,9 +46,10 @@ const handleError = (error: unknown, responseType: ReponseType = "server") => {
    if (error instanceof RequestError) {
       logger.error(
          { err: error },
-         `${responseType.toUpperCase()} ERROR: ${error.message}`
+         `${responseType.toUpperCase()} Error: ${error.message}`
       );
-      return formatReponse(
+
+      return formatResponse(
          responseType,
          error.statusCode,
          error.message,
@@ -57,35 +58,31 @@ const handleError = (error: unknown, responseType: ReponseType = "server") => {
    }
 
    if (error instanceof ZodError) {
-      const validationErrors = new ValidationError(
+      const validationError = new ValidationError(
          error.flatten().fieldErrors as Record<string, string[]>
       );
 
       logger.error(
          { err: error },
-         `Validation Error: ${validationErrors.message}`
+         `Validation Error: ${validationError.message}`
       );
 
-      return formatReponse(
+      return formatResponse(
          responseType,
-         validationErrors.statusCode,
-         validationErrors.message,
-         validationErrors.errors
+         validationError.statusCode,
+         validationError.message,
+         validationError.errors
       );
    }
 
    if (error instanceof Error) {
       logger.error(error.message);
 
-      return formatReponse(responseType, 500, error.message);
+      return formatResponse(responseType, 500, error.message);
    }
 
-   logger.error(
-      { err: error },
-      `Unexpected Error: An unexpected error occurred.`
-   );
-
-   return formatReponse(responseType, 500, "An unexpected error occurred.");
+   logger.error({ err: error }, "An unexpected error occurred");
+   return formatResponse(responseType, 500, "An unexpected error occurred");
 };
 
 export default handleError;
