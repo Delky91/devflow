@@ -95,6 +95,25 @@ export async function signUpWithCredentials(
    }
 }
 
+/**
+ * Signs in a user with their email and password credentials.
+ *
+ * @param params - An object containing the user's email and password.
+ * @returns A promise that resolves to an ActionResponse object.
+ *
+ * The function performs the following steps:
+ * 1. Validates the provided credentials against the SignInSchema.
+ * 2. If validation fails, returns an ErrorResponse.
+ * 3. Checks if a user with the provided email exists in the database.
+ * 4. If the user does not exist, throws a NotFoundError for the user.
+ * 5. Checks if an account with the provided email and "credentials" provider exists.
+ * 6. If the account does not exist, throws a NotFoundError for the account.
+ * 7. Compares the provided password with the stored password hash.
+ * 8. If the passwords do not match, throws an error.
+ * 9. Signs in the user using the "credentials" provider.
+ * 10. Returns a success response if the sign-in is successful.
+ * 11. Catches and handles any errors that occur during the process.
+ */
 export async function signInWithCredentials(
    params: Pick<AuthCredentials, "email" | "password">
 ): Promise<ActionResponse> {
