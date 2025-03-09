@@ -39,7 +39,7 @@ type ActionOptions<T> = {
 export default async function action<T>({
    params,
    schema,
-   isAuthorize = true,
+   isAuthorize = false,
 }: ActionOptions<T>) {
    if (schema && params) {
       try {
@@ -56,7 +56,7 @@ export default async function action<T>({
    }
 
    let session: Session | null = null;
-   if (isAuthorize) {
+   if (!isAuthorize) {
       session = await auth();
 
       if (!session) {

@@ -31,7 +31,11 @@ import { SignInSchema, SignUpSchema } from "../validations";
 export async function signUpWithCredentials(
    params: AuthCredentials
 ): Promise<ActionResponse> {
-   const validationsResult = await action({ params, schema: SignUpSchema });
+   const validationsResult = await action({
+      params,
+      schema: SignUpSchema,
+      isAuthorize: true,
+   });
 
    if (validationsResult instanceof Error) {
       return handleError(validationsResult) as ErrorResponse;
@@ -117,7 +121,11 @@ export async function signUpWithCredentials(
 export async function signInWithCredentials(
    params: Pick<AuthCredentials, "email" | "password">
 ): Promise<ActionResponse> {
-   const validationsResult = await action({ params, schema: SignInSchema });
+   const validationsResult = await action({
+      params,
+      schema: SignInSchema,
+      isAuthorize: true,
+   });
 
    if (validationsResult instanceof Error) {
       return handleError(validationsResult) as ErrorResponse;
