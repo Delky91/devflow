@@ -10,8 +10,24 @@ import { ActionResponse, ErrorResponse } from "@/types/global";
 
 import action from "../handlers/action";
 import handleError from "../handlers/error";
-import { SignUpSchema } from "../validations";
+import { NotFoundError } from "../http-errors";
+import { SignInSchema, SignUpSchema } from "../validations";
 
+/**
+ * Signs up a new user with the provided credentials.
+ *
+ * @param params - The authentication credentials for the new user.
+ * @returns A promise that resolves to an ActionResponse indicating the success or failure of the sign-up process.
+ *
+ * The function performs the following steps:
+ * 1. Validates the provided credentials against the SignUpSchema.
+ * 2. Checks if a user with the provided email or username already exists.
+ * 3. Hashes the user's password.
+ * 4. Creates a new user and associated account within a MongoDB transaction.
+ * 5. Signs in the user using the provided credentials.
+ *
+ * If any error occurs during the process, the transaction is aborted and an error response is returned.
+ */
 export async function signUpWithCredentials(
    params: AuthCredentials
 ): Promise<ActionResponse> {
@@ -76,5 +92,43 @@ export async function signUpWithCredentials(
       return handleError(error) as ErrorResponse;
    } finally {
       await session.endSession();
+   }
+}
+
+export async function signInWithCredentials(
+   params: Pick<AuthCredentials, "email" | "password">
+): Promise<ActionResponse> {
+   const validationsResult = await action({ params, schema: SignInSchema });
+
+   if (validationsResult instanceof Error) {
+      return handleError(validationsResult) as ErrorResponse;
+   }
+
+   const { email, password } = validationsResult.params!;
+
+   try {
+      const existingUser = await User.findOne({ email });
+      if (!existingUser) throw new NotFoundError("User");
+
+      const existingAccount = await Account.findOne({
+         provider: "credentials",
+         providerAccountId: email,
+      });
+
+      if (!existingAccount) throw new NotFoundError("Account");
+
+      const passwordMatch = await bcrypt.compare(
+         password,
+         existingAccount.password
+      );
+
+      if (!passwordMatch) {
+         throw new Error("Password does not match");
+      }
+
+      await signIn("credentials", { email, password, redirect: false });
+      return { success: true };
+   } catch (error) {
+      return handleError(error) as ErrorResponse;
    }
 }
