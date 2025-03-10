@@ -31,7 +31,6 @@ export async function signUpWithCredentials(params: AuthCredentials): Promise<Ac
    const validationsResult = await action({
       params,
       schema: SignUpSchema,
-      isAuthorize: true,
    });
 
    if (validationsResult instanceof Error) {
@@ -56,17 +55,7 @@ export async function signUpWithCredentials(params: AuthCredentials): Promise<Ac
 
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      const [newUser] = await User.create(
-         [
-            {
-               name,
-               username,
-               email,
-            },
-         ],
-
-         { session }
-      );
+      const [newUser] = await User.create([{ name, username, email }], { session });
 
       await Account.create(
          [
@@ -119,7 +108,6 @@ export async function signInWithCredentials(
    const validationsResult = await action({
       params,
       schema: SignInSchema,
-      isAuthorize: true,
    });
 
    if (validationsResult instanceof Error) {
