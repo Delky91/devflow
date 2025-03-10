@@ -1,50 +1,63 @@
 import { NextResponse } from "next/server";
 
-interface Tag {
-   _id: string;
-   name: string;
-}
+declare global {
+   interface Tag {
+      _id: string;
+      name: string;
+   }
 
-interface Author {
-   _id: string;
-   name: string;
-   image: string;
-}
+   interface Author {
+      _id: string;
+      name: string;
+      image: string;
+   }
 
-interface Question {
-   _id: string;
-   title: string;
-   tags: Tag[];
-   author: Author;
-   createdAt: Date;
-   upvotes: number;
-   answers: number;
-   views: number;
-}
+   interface Question {
+      _id: string;
+      title: string;
+      tags: Tag[];
+      author: Author;
+      createdAt: Date;
+      upvotes: number;
+      answers: number;
+      views: number;
+   }
 
-interface MetricProps {
-   imgUrl: string;
-   alt: string;
-   value: string | number;
-   title: string;
-   href?: string;
-   textStyles?: string;
-   imgStyles?: string;
-   isAuthor?: boolean;
-}
+   interface MetricProps {
+      imgUrl: string;
+      alt: string;
+      value: string | number;
+      title: string;
+      href?: string;
+      textStyles?: string;
+      imgStyles?: string;
+      isAuthor?: boolean;
+   }
 
-type ActionResponse<T = null> = {
-   success: boolean;
-   data?: T;
-   error?: {
-      message: string;
-      details?: Record<string, string[]>;
+   type ActionResponse<T = null> = {
+      success: boolean;
+      data?: T;
+      error?: {
+         message: string;
+         details?: Record<string, string[]>;
+      };
+      status?: number;
    };
-   status?: number;
-};
 
-type SuccessResponse<T = null> = ActionResponse<T> & { success: true };
-type ErrorResponse = ActionResponse<undefined> & { success: false };
+   type SuccessResponse<T = null> = ActionResponse<T> & { success: true };
+   type ErrorResponse = ActionResponse<undefined> & { success: false };
 
-type APIErrorResponse = NextResponse<ErrorResponse>;
-type APIResponse<T = null> = NextResponse<SuccessResponse<T> | ErrorResponse>;
+   type APIErrorResponse = NextResponse<ErrorResponse>;
+   type APIResponse<T = null> = NextResponse<SuccessResponse<T> | ErrorResponse>;
+
+   /* diference between params and search params
+      params: /question/:id
+      searchParams: /question?tag=javascript
+   */
+   interface RouteParams {
+      params: Promise<Record<string, string>>;
+      searchParams: Promise<Record<string, string>>;
+   }
+}
+
+export {};

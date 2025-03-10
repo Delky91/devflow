@@ -49,12 +49,8 @@ const Home = async ({ searchParams }: SearchParams) => {
 
    // !DUMMY DATA USAGE Remove this when API is ready
    const filterQuestions = questions.filter((question) => {
-      const matchesQuery = question.title
-         .toLowerCase()
-         .includes(query.toLowerCase());
-      const matchesFilter = filter
-         ? question.tags[0].name.toLowerCase() === filter.toLowerCase()
-         : true;
+      const matchesQuery = question.title.toLowerCase().includes(query.toLowerCase());
+      const matchesFilter = filter ? question.tags[0].name.toLowerCase() === filter.toLowerCase() : true;
 
       return matchesQuery && matchesFilter;
    });

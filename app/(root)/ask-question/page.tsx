@@ -1,8 +1,11 @@
 import React from "react";
 
 import QuestionForm from "@/components/forms/QuestionForm";
+import { sessionCheckAndRedirect } from "@/lib/sessionCheck";
 
-const AskQuestionPage = () => {
+const AskQuestionPage = async () => {
+   await sessionCheckAndRedirect();
+
    return (
       <>
          <h1 className="h1-bold text-dark100_light900">Ask a Question</h1>

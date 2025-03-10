@@ -6,7 +6,6 @@ import mongoose from "mongoose";
 import { signIn } from "@/auth";
 import { Account } from "@/database/account.model";
 import { User } from "@/database/user.model";
-import { ActionResponse, ErrorResponse } from "@/types/global";
 
 import action from "../handlers/action";
 import handleError from "../handlers/error";
@@ -28,9 +27,7 @@ import { SignInSchema, SignUpSchema } from "../validations";
  *
  * If any error occurs during the process, the transaction is aborted and an error response is returned.
  */
-export async function signUpWithCredentials(
-   params: AuthCredentials
-): Promise<ActionResponse> {
+export async function signUpWithCredentials(params: AuthCredentials): Promise<ActionResponse> {
    const validationsResult = await action({
       params,
       schema: SignUpSchema,
@@ -52,9 +49,7 @@ export async function signUpWithCredentials(
          throw new Error("User already exists");
       }
 
-      const existingUsername = await User.findOne({ username }).session(
-         session
-      );
+      const existingUsername = await User.findOne({ username }).session(session);
       if (existingUsername) {
          throw new Error("Username already exists");
       }
@@ -144,10 +139,7 @@ export async function signInWithCredentials(
 
       if (!existingAccount) throw new NotFoundError("Account");
 
-      const passwordMatch = await bcrypt.compare(
-         password,
-         existingAccount.password
-      );
+      const passwordMatch = await bcrypt.compare(password, existingAccount.password);
 
       if (!passwordMatch) {
          throw new Error("Password does not match");

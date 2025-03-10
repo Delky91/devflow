@@ -2,24 +2,21 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MDXEditorMethods } from "@mdxeditor/editor";
+import { ReloadIcon } from "@radix-ui/react-icons";
 import dynamic from "next/dynamic";
-import { useRef } from "react";
+import { useRouter } from "next/navigation";
+import { useRef, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import ROUTES from "@/constants/routes";
+import { toast } from "@/hooks/use-toast";
+import { createQuestion } from "@/lib/actions/question.action";
 import { AskQuestionSchema } from "@/lib/validations";
 
 import TagCard from "../cards/TagCard";
 import { Button } from "../ui/button";
-import {
-   Form,
-   FormControl,
-   FormDescription,
-   FormField,
-   FormItem,
-   FormLabel,
-   FormMessage,
-} from "../ui/form";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { Input } from "../ui/input";
 
 const Editor = dynamic(() => import("@/components/editor/Editor"), {
@@ -28,7 +25,9 @@ const Editor = dynamic(() => import("@/components/editor/Editor"), {
 });
 
 const QuestionForm = () => {
+   const router = useRouter();
    const editorRef = useRef<MDXEditorMethods>(null);
+   const [isPending, startTransition] = useTransition();
 
    const form = useForm<z.infer<typeof AskQuestionSchema>>({
       resolver: zodResolver(AskQuestionSchema),
@@ -40,7 +39,24 @@ const QuestionForm = () => {
    });
 
    const handleCreateQuestion = (data: z.infer<typeof AskQuestionSchema>) => {
-      console.log(data);
+      startTransition(async () => {
+         const result = await createQuestion(data);
+         if (result.success) {
+            toast({
+               title: "Success",
+               description: "Your question has been created successfully.",
+            });
+
+            if (result.data) router.push(ROUTES.QUESTION(result.data._id));
+            else {
+               toast({
+                  title: "Error",
+                  description: "Something went wrong while creating your question.",
+                  variant: "destructive",
+               });
+            }
+         }
+      });
    };
 
    const handleTagRemove = (tag: string, field: { value: string[] }) => {
@@ -56,19 +72,12 @@ const QuestionForm = () => {
       }
    };
 
-   const handleInputKeyDown = (
-      e: React.KeyboardEvent<HTMLInputElement>,
-      field: { value: string[] }
-   ) => {
+   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, field: { value: string[] }) => {
       if (e.key === "Enter") {
          e.preventDefault();
          const tagInput = e.currentTarget.value.trim();
 
-         if (
-            tagInput &&
-            tagInput.length < 15 &&
-            !field.value.includes(tagInput)
-         ) {
+         if (tagInput && tagInput.length < 15 && !field.value.includes(tagInput)) {
             form.setValue("tags", [...field.value, tagInput]);
             e.currentTarget.value = "";
             form.clearErrors("tags");
@@ -98,8 +107,7 @@ const QuestionForm = () => {
                render={({ field }) => (
                   <FormItem className="flex w-full flex-col">
                      <FormLabel className="paragraph-semibold text-dark400_light800">
-                        Question Title{" "}
-                        <span className="text-primary-500">*</span>
+                        Question Title <span className="text-primary-500">*</span>
                      </FormLabel>
                      <FormControl>
                         <Input
@@ -110,8 +118,7 @@ const QuestionForm = () => {
                         />
                      </FormControl>
                      <FormDescription className="body-regular mt-2.5 text-light-500">
-                        Be specific and imagine you&apos;re asking a question to
-                        another person.
+                        Be specific and imagine you&apos;re asking a question to another person.
                      </FormDescription>
                      <FormMessage />
                   </FormItem>
@@ -125,8 +132,7 @@ const QuestionForm = () => {
                render={({ field }) => (
                   <FormItem className="flex w-full flex-col">
                      <FormLabel className="paragraph-semibold text-dark400_light800">
-                        Detailed expalanation of your problem{" "}
-                        <span className="text-primary-500">*</span>
+                        Detailed expalanation of your problem <span className="text-primary-500">*</span>
                      </FormLabel>
                      <FormControl>
                         {/* Editor component  */}
@@ -137,8 +143,7 @@ const QuestionForm = () => {
                         />
                      </FormControl>
                      <FormDescription className="body-regular mt-2.5 text-light-500">
-                        Introduce the problem and expand on what you&apos;ve put
-                        in the title.
+                        Introduce the problem and expand on what you&apos;ve put in the title.
                      </FormDescription>
                      <FormMessage />
                   </FormItem>
@@ -173,9 +178,7 @@ const QuestionForm = () => {
                                        compact
                                        remove
                                        isButton
-                                       handleRemove={() =>
-                                          handleTagRemove(tag, field)
-                                       }
+                                       handleRemove={() => handleTagRemove(tag, field)}
                                     />
                                  ))}
                               </div>
@@ -184,8 +187,8 @@ const QuestionForm = () => {
                      </FormControl>
                      <FormMessage />
                      <FormDescription className="body-regular mt-2.5 text-light-500">
-                        Add up to three tags to describe what your question is
-                        about. You need to press Enter to add a tag.
+                        Add up to three tags to describe what your question is about. You need to press Enter to add a
+                        tag.
                      </FormDescription>
                   </FormItem>
                )}
@@ -193,8 +196,16 @@ const QuestionForm = () => {
             <div className="mt-16 flex justify-end">
                <Button
                   type="submit"
+                  disabled={isPending}
                   className="primary-gradient w-fit !text-light-900">
-                  Ask Question
+                  {isPending ? (
+                     <>
+                        <ReloadIcon className="mr-2 size-4 animate-spin" />
+                        <span>Submitting</span>
+                     </>
+                  ) : (
+                     <>Ask Question</>
+                  )}
                </Button>
             </div>
          </form>

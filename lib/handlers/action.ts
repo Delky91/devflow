@@ -36,19 +36,13 @@ type ActionOptions<T> = {
  * @throws {UnauthorizedError} If authorization is required but user is not authenticated
  * @throws {Error} If any other error occurs during schema validation
  */
-export default async function action<T>({
-   params,
-   schema,
-   isAuthorize = false,
-}: ActionOptions<T>) {
+export default async function action<T>({ params, schema, isAuthorize = false }: ActionOptions<T>) {
    if (schema && params) {
       try {
          schema.parse(params);
       } catch (error) {
          if (error instanceof ZodError) {
-            return new ValidationError(
-               error.flatten().fieldErrors as Record<string, string[]>
-            );
+            return new ValidationError(error.flatten().fieldErrors as Record<string, string[]>);
          } else {
             return new Error("Schema validation failed");
          }
@@ -56,14 +50,13 @@ export default async function action<T>({
    }
 
    let session: Session | null = null;
-   if (!isAuthorize) {
+   if (isAuthorize) {
       session = await auth();
 
       if (!session) {
          return new UnauthorizedError();
       }
    }
-
    await dbConnect();
 
    return { params, session };

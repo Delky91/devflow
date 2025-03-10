@@ -5,7 +5,6 @@ import mongoose from "mongoose";
 import { Question } from "@/database/question.model";
 import { TagQuestion } from "@/database/tag-question.model";
 import { Tag } from "@/database/tag.model";
-import { ActionResponse, ErrorResponse } from "@/types/global";
 
 import action from "../handlers/action";
 import handleError from "../handlers/error";
@@ -30,13 +29,14 @@ import { AskQuestionSchema } from "../validations";
  *
  * @throws {Error} - Throws an error if the question creation fails.
  */
-export async function createQuestions(params: CreateQuestionParams): Promise<ActionResponse> {
+export async function createQuestion(params: CreateQuestionParams): Promise<ActionResponse<Question>> {
    // validate params
    const validationResult = await action({
       params,
       schema: AskQuestionSchema,
       isAuthorize: true,
    });
+   console.log("validationResult", validationResult);
 
    if (validationResult instanceof Error) {
       return handleError(validationResult) as ErrorResponse;

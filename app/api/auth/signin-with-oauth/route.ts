@@ -8,8 +8,30 @@ import { User } from "@/database/user.model";
 import handleError from "@/lib/handlers/error";
 import { ValidationError } from "@/lib/http-errors";
 import { SignInWithOAuthSchema } from "@/lib/validations";
-import { APIErrorResponse } from "@/types/global";
 
+/**
+ * Handles the POST request for signing in with OAuth.
+ *
+ * @param {Request} request - The incoming request object.
+ * @returns {Promise<NextResponse>} - The response object indicating success or failure.
+ *
+ * @throws {ValidationError} - If the provided data is invalid.
+ * @throws {APIErrorResponse} - If an error occurs during the process.
+ *
+ * The function performs the following steps:
+ * 1. Parses the request body to extract provider, providerAccountId, and user information.
+ * 2. Connects to the database.
+ * 3. Starts a new session and transaction.
+ * 4. Validates the parsed data against the SignInWithOAuthSchema.
+ * 5. Checks if a user with the provided email exists:
+ *    - If not, creates a new user.
+ *    - If yes, updates the user's name and image if they have changed.
+ * 6. Checks if an account with the provided provider and providerAccountId exists for the user:
+ *    - If not, creates a new account.
+ * 7. Commits the transaction if all operations succeed.
+ * 8. Aborts the transaction and handles the error if any operation fails.
+ * 9. Ends the session.
+ */
 export async function POST(request: Request) {
    const { provider, providerAccountId, user } = await request.json();
 
@@ -25,8 +47,7 @@ export async function POST(request: Request) {
          user,
       });
 
-      if (!validatedData.success)
-         throw new ValidationError(validatedData.error.flatten().fieldErrors);
+      if (!validatedData.success) throw new ValidationError(validatedData.error.flatten().fieldErrors);
 
       const { name, username, email, image } = user;
 
@@ -39,10 +60,7 @@ export async function POST(request: Request) {
       let existingUser = await User.findOne({ email }).session(session);
 
       if (!existingUser) {
-         [existingUser] = await User.create(
-            [{ name, username: slugifiedUsername, email, image }],
-            { session }
-         );
+         [existingUser] = await User.create([{ name, username: slugifiedUsername, email, image }], { session });
       } else {
          const updatedData: { name?: string; image?: string } = {};
 
@@ -50,10 +68,7 @@ export async function POST(request: Request) {
          if (existingUser.image !== image) updatedData.image = image;
 
          if (Object.keys(updatedData).length > 0) {
-            await User.updateOne(
-               { _id: existingUser._id },
-               { $set: updatedData }
-            ).session(session);
+            await User.updateOne({ _id: existingUser._id }, { $set: updatedData }).session(session);
          }
       }
 
