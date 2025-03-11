@@ -11,7 +11,7 @@ import { z } from "zod";
 
 import ROUTES from "@/constants/routes";
 import { toast } from "@/hooks/use-toast";
-import { createQuestion } from "@/lib/actions/question.action";
+import { createQuestion, editQuestion } from "@/lib/actions/question.action";
 import { AskQuestionSchema } from "@/lib/validations";
 
 import TagCard from "../cards/TagCard";
@@ -24,7 +24,12 @@ const Editor = dynamic(() => import("@/components/editor/Editor"), {
    ssr: false,
 });
 
-const QuestionForm = () => {
+interface QuestionFormParams {
+   question?: Question;
+   isEdit?: boolean;
+}
+
+const QuestionForm = ({ question, isEdit = false }: QuestionFormParams) => {
    const router = useRouter();
    const editorRef = useRef<MDXEditorMethods>(null);
    const [isPending, startTransition] = useTransition();
@@ -32,14 +37,36 @@ const QuestionForm = () => {
    const form = useForm<z.infer<typeof AskQuestionSchema>>({
       resolver: zodResolver(AskQuestionSchema),
       defaultValues: {
-         title: "",
-         content: "",
-         tags: [],
+         title: question?.title || "",
+         content: question?.content || "",
+         tags: question?.tags.map((tag) => tag.name) || [],
       },
    });
 
    const handleCreateQuestion = (data: z.infer<typeof AskQuestionSchema>) => {
       startTransition(async () => {
+         if (isEdit && question) {
+            const result = await editQuestion({ questionId: question?._id, ...data });
+
+            if (result.success) {
+               toast({
+                  title: "Success",
+                  description: "Your question has been edited successfully.",
+               });
+
+               if (result.data) router.push(ROUTES.QUESTION(result.data._id));
+               else {
+                  toast({
+                     title: "Error",
+                     description: "Something went wrong while editing your question.",
+                     variant: "destructive",
+                  });
+               }
+            }
+            // needed to end the function when editing a question
+            return;
+         }
+
          const result = await createQuestion(data);
          if (result.success) {
             toast({
@@ -204,7 +231,7 @@ const QuestionForm = () => {
                         <span>Submitting</span>
                      </>
                   ) : (
-                     <>Ask Question</>
+                     <>{isEdit ? "Edit" : "Ask Question"}</>
                   )}
                </Button>
             </div>

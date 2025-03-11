@@ -21,8 +21,7 @@ export const SignUpSchema = z.object({
       .min(3, { message: "Username must be at least 3 characters long." })
       .max(30, { message: "Username must be at most 30 characters long." })
       .regex(/^[a-zA-Z0-9_]+$/, {
-         message:
-            "Username can only contain letters, numbers, and underscores.",
+         message: "Username can only contain letters, numbers, and underscores.",
       }),
 
    name: z
@@ -66,29 +65,29 @@ export const AskQuestionSchema = z.object({
    content: z.string().min(1, { message: "Content is required." }),
    tags: z
       .array(
-         z
-            .string()
-            .min(1, { message: "Tag is required." })
-            .max(30, { message: "Tag cannot exceed 30 characters." })
+         z.string().min(1, { message: "Tag is required." }).max(30, { message: "Tag cannot exceed 30 characters." })
       )
       .min(1, { message: "At least one tag is required." })
       .max(3, { message: "Cannot add more than 3 tags." }),
 });
 
+export const EditQuestionSchema = AskQuestionSchema.extend({
+   questionId: z.string().min(1, { message: "Question ID is required." }),
+});
+
+export const GetQuestionSchema = z.object({
+   questionId: z.string().min(1, { message: "Question ID is required." }),
+});
+
 // Define the schema for the user profile
 export const UserSchema = z.object({
    name: z.string().min(1, { message: "Name is required." }),
-   username: z
-      .string()
-      .min(3, { message: "Username must be at least 3 characters long" }),
+   username: z.string().min(3, { message: "Username must be at least 3 characters long" }),
    email: z.string().email({ message: "Please enter a valid email address." }),
    bio: z.string().max(1500, "The bio is to long").optional(),
    image: z.string().url({ message: "Please enter a valid URL." }).optional(),
    location: z.string().optional(),
-   portfolio: z
-      .string()
-      .url({ message: "Please enter a valid URL." })
-      .optional(),
+   portfolio: z.string().url({ message: "Please enter a valid URL." }).optional(),
    reputation: z.number().optional(),
 });
 
@@ -113,25 +112,16 @@ export const AccountSchema = z.object({
       })
       .optional(),
    provider: z.string().min(1, { message: "Provider is required." }),
-   providerAccountId: z
-      .string()
-      .min(1, { message: "Provider Account ID is required." }),
+   providerAccountId: z.string().min(1, { message: "Provider Account ID is required." }),
 });
 
 export const SignInWithOAuthSchema = z.object({
    provider: z.enum(["google", "github"]),
-   providerAccountId: z
-      .string()
-      .min(1, { message: "Provider Account ID is required." }),
+   providerAccountId: z.string().min(1, { message: "Provider Account ID is required." }),
    user: z.object({
       name: z.string().min(1, { message: "Name is required." }),
-      email: z
-         .string()
-         .email({ message: "Please enter a valid email address." }),
+      email: z.string().email({ message: "Please enter a valid email address." }),
       username: z.string().min(1, { message: "Username is required." }),
-      image: z
-         .string()
-         .url({ message: "Please enter a valid URL." })
-         .optional(),
+      image: z.string().url({ message: "Please enter a valid URL." }).optional(),
    }),
 });

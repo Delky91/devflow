@@ -4,11 +4,22 @@ import mongoose from "mongoose";
 
 import { Question } from "@/database/question.model";
 import { TagQuestion } from "@/database/tag-question.model";
-import { Tag } from "@/database/tag.model";
+import { ITagDoc, Tag } from "@/database/tag.model";
 
 import action from "../handlers/action";
 import handleError from "../handlers/error";
-import { AskQuestionSchema } from "../validations";
+import { NotFoundError, UnauthorizedError } from "../http-errors";
+import { AskQuestionSchema, EditQuestionSchema, GetQuestionSchema } from "../validations";
+
+/*
+   Information about server actions:
+      1: In server components, they act like regulars async functions.
+      2: In client components, When used in form actions or event handlers, they are invoked via a POST request.
+
+   Direct Invocation: when you use a Server action in a server Compoennet,
+   you're directly invoking the function on the server. there's no HTTP request
+   involved cause the server component and the server action are on the same server.
+*/
 
 /**
  * Creates a new question with the provided parameters.
@@ -84,5 +95,143 @@ export async function createQuestion(params: CreateQuestionParams): Promise<Acti
       return handleError(error) as ErrorResponse;
    } finally {
       session.endSession();
+   }
+}
+
+/**
+ * Edits an existing question based on the provided parameters.
+ *
+ * @param {EditQuestionParams} params - The parameters required to edit the question.
+ * @returns {Promise<ActionResponse<Question>>} - A promise that resolves to the action response containing the edited question.
+ *
+ * The function performs the following steps:
+ * 1. Validates the input parameters against the `EditQuestionSchema`.
+ * 2. Checks if the question exists and if the user is authorized to edit it.
+ * 3. Updates the question's title and content if they have changed.
+ * 4. Adds new tags to the question and removes old tags that are no longer associated with it.
+ * 5. Saves the changes to the database within a transaction.
+ * 6. Handles any errors that occur during the process.
+ *
+ * @throws {NotFoundError} If the question is not found.
+ * @throws {UnauthorizedError} If the user is not authorized to edit the question.
+ */
+export async function editQuestion(params: EditQuestionParams): Promise<ActionResponse<Question>> {
+   const validationResult = await action({
+      params,
+      schema: EditQuestionSchema,
+      isAuthorize: true,
+   });
+   if (validationResult instanceof Error) {
+      return handleError(validationResult) as ErrorResponse;
+   }
+
+   const { title, content, tags, questionId } = validationResult.params!;
+   const userId = validationResult?.session?.user?.id;
+
+   const session = await mongoose.startSession();
+   session.startTransaction();
+   try {
+      const question = await Question.findById(questionId).populate("tags");
+      if (!question) {
+         throw new NotFoundError("Question not found");
+      }
+
+      if (question.author.toString() !== userId) {
+         throw new UnauthorizedError("You are not authorized to edit this question");
+      }
+
+      if (question.title !== title || question.content !== content) {
+         question.title = title;
+         question.content = content;
+         await question.save({ session });
+      }
+
+      const tagsToAdd = tags.filter((tag) => !question.tags.includes(tag.toLowerCase()));
+      const tagsToRemove = question.tags.filter((tag: ITagDoc) => !tags.includes(tag.name.toLowerCase()));
+
+      const newTagsDocs = [];
+
+      // Add new tags to the question
+      if (tagsToAdd.length > 0) {
+         for (const tag of tagsToAdd) {
+            const existingTag = await Tag.findOneAndUpdate(
+               { name: { $regex: new RegExp(`^${tag}$`, "i") } },
+               { $setOnInsert: { name: tag }, $inc: { questions: 1 } },
+               { session, upsert: true, new: true }
+            );
+
+            if (existingTag) {
+               newTagsDocs.push({
+                  tag: existingTag._id,
+                  question: questionId,
+               });
+
+               question.tags.push(existingTag._id);
+            }
+         }
+      }
+
+      // Remove old tags from the question
+      if (tagsToRemove.length > 0) {
+         const tagIdsToRemove = tagsToRemove.map((tag: ITagDoc) => tag._id);
+         await Tag.updateMany({ _id: { $in: tagIdsToRemove } }, { $inc: { questions: -1 } }, { session });
+         await TagQuestion.deleteMany({ question: questionId, tag: { $in: tagIdsToRemove } }, { session });
+
+         question.tags = question.tags.filter((tag: mongoose.Types.ObjectId) => !tagIdsToRemove.includes(tag));
+      }
+
+      if (newTagsDocs.length > 0) {
+         await TagQuestion.insertMany(newTagsDocs, { session });
+      }
+
+      await question.save({ session });
+      await session.commitTransaction();
+
+      return {
+         success: true,
+         status: 200,
+         data: JSON.parse(JSON.stringify(question)),
+      };
+   } catch (error) {
+      await session.abortTransaction();
+      return handleError(error) as ErrorResponse;
+   } finally {
+      session.endSession();
+   }
+}
+
+/**
+ * Retrieves a question based on the provided parameters.
+ *
+ * @param params - The parameters required to get the question.
+ * @returns A promise that resolves to an ActionResponse containing the question data,
+ * or an ErrorResponse if an error occurs.
+ *
+ * @throws NotFoundError - If the question with the specified ID is not found.
+ */
+export async function getQuestion(params: GetQuestionParams): Promise<ActionResponse<Question>> {
+   const validationResult = await action({
+      params,
+      schema: GetQuestionSchema,
+      isAuthorize: true,
+   });
+   if (validationResult instanceof Error) {
+      return handleError(validationResult) as ErrorResponse;
+   }
+
+   const { questionId } = validationResult.params!;
+
+   try {
+      const question = await Question.findById(questionId).populate("tags");
+      if (!question) {
+         throw new NotFoundError("Question not found");
+      }
+      return {
+         success: true,
+         status: 200,
+         data: JSON.parse(JSON.stringify(question)),
+      };
+   } catch (error) {
+      return handleError(error) as ErrorResponse;
    }
 }

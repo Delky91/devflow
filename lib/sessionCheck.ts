@@ -1,15 +1,20 @@
 import { redirect } from "next/navigation";
+import { Session } from "next-auth";
 
 import { auth } from "@/auth";
 import ROUTES from "@/constants/routes";
 
 /**
- * Checks the current session and redirects to the sign-in page if no session is found.
+ * Checks the user's session and redirects if necessary.
  *
- * @returns {Promise<null | void>} - Returns null if a session is found, otherwise redirects to the sign-in page.
+ * @param {boolean} [needSession=false] - Indicates whether a session is required.
+ * @returns {Promise<null | Session>} - Returns the session if it exists and is required, otherwise null.
  */
-export const sessionCheckAndRedirect = async (): Promise<null | void> => {
+export const sessionCheckAndRedirect = async (needSession: boolean = false): Promise<null | Session> => {
    const session = await auth();
+
    if (!session) return redirect(ROUTES.SIGN_IN);
-   return null;
+   if (!needSession) return null;
+
+   return session;
 };
