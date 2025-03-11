@@ -24,9 +24,7 @@ const QuestionCard = ({
                </span>
 
                <Link href={ROUTES.QUESTION(_id)}>
-                  <h3 className="sm:h3-semibold base-semibold text-dark200_light900 line-clamp-1 flex-1">
-                     {title}
-                  </h3>
+                  <h3 className="sm:h3-semibold base-semibold text-dark200_light900 line-clamp-1 flex-1">{title}</h3>
                </Link>
             </div>
          </div>
@@ -45,8 +43,8 @@ const QuestionCard = ({
 
          {/* author, upvotes, answers, views section of the card */}
          <div className="flex-between mt-6 w-full flex-wrap gap-3">
+            {/* author section */}
             <Metric
-               // !DUMMY DATA USAGE Remove this when API is ready
                imgUrl={author.image}
                alt={author.name}
                value={author.name}

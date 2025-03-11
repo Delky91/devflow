@@ -5,39 +5,7 @@ import HomeFilter from "@/components/filters/HomeFilter";
 import LocalSearch from "@/components/search/LocalSearch";
 import { Button } from "@/components/ui/button";
 import ROUTES from "@/constants/routes";
-
-// !DUMMY DATA
-const questions = [
-   {
-      _id: "1",
-      title: "How to learn React?",
-      description: "I want to learn React. Can anyone help me?",
-      tags: [
-         { _id: "1", name: "React" },
-         { _id: "2", name: "JavaScript" },
-      ],
-      author: {
-         _id: "1",
-         name: "John Doe",
-         image: "/icons/avatar.svg",
-      },
-      upvotes: 10,
-      answers: 5,
-      views: 100,
-      createdAt: new Date(),
-   },
-   {
-      _id: "2",
-      title: "How to learn JavaScript?",
-      description: "I want to learn JavaScript. Can anyone help me?",
-      tags: [{ _id: "1", name: "JavaScript" }],
-      author: { _id: "1", name: "John Doe", image: "/icons/avatar.svg" },
-      upvotes: 10,
-      answers: 5,
-      views: 100,
-      createdAt: new Date("06/11/2024"),
-   },
-];
+import { getQuestions } from "@/lib/actions/question.action";
 
 // new in Next.js 12, searchParams can be a promise
 interface SearchParams {
@@ -45,15 +13,15 @@ interface SearchParams {
 }
 
 const Home = async ({ searchParams }: SearchParams) => {
-   const { query = "", filter = "" } = await searchParams;
-
-   // !DUMMY DATA USAGE Remove this when API is ready
-   const filterQuestions = questions.filter((question) => {
-      const matchesQuery = question.title.toLowerCase().includes(query.toLowerCase());
-      const matchesFilter = filter ? question.tags[0].name.toLowerCase() === filter.toLowerCase() : true;
-
-      return matchesQuery && matchesFilter;
+   const { page, pageSize, query, filter } = await searchParams;
+   const { success, data, error } = await getQuestions({
+      page: Number(page) || 1,
+      pageSize: Number(pageSize) || 10,
+      query: query || "",
+      filter: filter || "",
    });
+
+   const { questions } = data || {};
 
    return (
       <>
@@ -75,14 +43,26 @@ const Home = async ({ searchParams }: SearchParams) => {
             />
          </section>
          <HomeFilter />
-         <div className="mt-10 flex w-full flex-col gap-6">
-            {filterQuestions.map((question) => (
-               <QuestionCard
-                  key={question._id}
-                  question={question}
-               />
-            ))}
-         </div>
+         {success ? (
+            <div className="mt-10 flex w-full flex-col gap-6">
+               {questions && questions.length > 0 ? (
+                  questions.map((question) => (
+                     <QuestionCard
+                        key={question._id}
+                        question={question}
+                     />
+                  ))
+               ) : (
+                  <div className="mt-10 flex w-full items-center justify-center">
+                     <p className="text-dark400_light700">No questions found</p>
+                  </div>
+               )}
+            </div>
+         ) : (
+            <div className="mt-10 flex w-full items-center justify-center">
+               <p className="text-dark400_light700">{error?.message || "Failed to fetch Questions"}</p>
+            </div>
+         )}
       </>
    );
 };

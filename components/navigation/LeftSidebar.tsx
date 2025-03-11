@@ -33,9 +33,7 @@ const LeftSidebar = async () => {
                      type="submit"
                      className="base-medium hover:primary-text-gradient min-h-[41px] w-fit rounded-lg !bg-transparent px-4 py-3 shadow-none">
                      <LogOut className="size-5 text-black dark:text-white" />
-                     <span className="text-dark300_light900 max-lg:hidden">
-                        Logout
-                     </span>
+                     <span className="text-dark300_light900 max-lg:hidden">Logout</span>
                   </Button>
                </form>
             ) : (
@@ -51,9 +49,7 @@ const LeftSidebar = async () => {
                            height={20}
                            className="invert-colors lg:hidden"
                         />
-                        <span className="primary-text-gradient max-lg:hidden">
-                           Log In
-                        </span>
+                        <span className="primary-text-gradient max-lg:hidden">Log In</span>
                      </Link>
                   </Button>
 

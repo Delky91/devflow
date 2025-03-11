@@ -30,9 +30,7 @@ export function cn(...inputs: ClassValue[]) {
 export const getDeviconClassName = (techName: string) => {
    const normalizeTechName = techName.replace(/[ .]/g, "").toLowerCase();
 
-   return techMap[normalizeTechName]
-      ? `${techMap[normalizeTechName]} colored`
-      : "devicon-devicon-plain";
+   return techMap[normalizeTechName] ? `${techMap[normalizeTechName]} colored` : "devicon-devicon-plain";
 };
 
 /**
@@ -41,7 +39,8 @@ export const getDeviconClassName = (techName: string) => {
  * @param date - The date to compare with the current time.
  * @returns A string representing the time elapsed since the given date in the largest appropriate unit (e.g., "2 days ago", "3 hours ago").
  */
-export const getTimeStamp = (date: Date) => {
+export const getTimeStamp = (createdAt: Date) => {
+   const date = new Date(createdAt);
    const now = new Date();
    const secondsAgo = Math.floor((now.getTime() - date.getTime()) / 1000);
 
