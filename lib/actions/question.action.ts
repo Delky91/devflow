@@ -97,7 +97,7 @@ export async function createQuestion(params: CreateQuestionParams): Promise<Acti
       session.endSession();
    }
 }
-// TODO: refactor this function to use the above functions and use reduce the if hell
+
 /**
  * Edits an existing question based on the provided parameters.
  *
