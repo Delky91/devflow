@@ -8,7 +8,6 @@ import { ITagDoc, Tag } from "@/database/tag.model";
 
 import action from "../handlers/action";
 import handleError from "../handlers/error";
-import { NotFoundError, UnauthorizedError } from "../http-errors";
 import { AskQuestionSchema, EditQuestionSchema, GetQuestionSchema, PaginatedSearchParamsSchema } from "../validations";
 
 /*
@@ -133,11 +132,11 @@ export async function editQuestion(params: EditQuestionParams): Promise<ActionRe
    try {
       const question = await Question.findById(questionId).populate("tags");
       if (!question) {
-         throw new NotFoundError("Question not found");
+         throw new Error("Question not found");
       }
 
       if (question.author.toString() !== userId) {
-         throw new UnauthorizedError("You are not authorized to edit this question");
+         throw new Error("You are not authorized to edit this question");
       }
 
       if (question.title !== title || question.content !== content) {
@@ -230,7 +229,7 @@ export async function getQuestion(params: GetQuestionParams): Promise<ActionResp
    try {
       const question = await Question.findById(questionId).populate("tags");
       if (!question) {
-         throw new NotFoundError("Question not found");
+         throw new Error("Question not found");
       }
       return {
          success: true,
