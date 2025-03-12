@@ -8,7 +8,6 @@ import { IAccountDoc } from "./database/account.model";
 import { IUserDoc } from "./database/user.model";
 import { api } from "./lib/api";
 import { SignInSchema } from "./lib/validations";
-import { ActionResponse } from "./types/global";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
    providers: [
@@ -19,10 +18,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             const validatedFields = SignInSchema.safeParse(credentials);
             if (validatedFields.success) {
                const { email, password } = validatedFields.data;
-               const { data: existingAccount } =
-                  (await api.accounts.getByProvider(
-                     email
-                  )) as ActionResponse<IAccountDoc>;
+               const { data: existingAccount } = (await api.accounts.getByProvider(
+                  email
+               )) as ActionResponse<IAccountDoc>;
 
                if (!existingAccount) return null;
 
@@ -32,10 +30,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
                if (!existingUser) return null;
 
-               const isPasswordCorrect = await bcrypt.compare(
-                  password,
-                  existingAccount.password!
-               );
+               const isPasswordCorrect = await bcrypt.compare(password, existingAccount.password!);
 
                if (isPasswordCorrect) {
                   return {
@@ -57,12 +52,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
       async jwt({ token, account }) {
          if (account) {
-            const { data: existingAccount, success } =
-               (await api.accounts.getByProvider(
-                  account.type === "credentials"
-                     ? token.email!
-                     : account.providerAccountId
-               )) as ActionResponse<IAccountDoc>;
+            const { data: existingAccount, success } = (await api.accounts.getByProvider(
+               account.type === "credentials" ? token.email! : account.providerAccountId
+            )) as ActionResponse<IAccountDoc>;
 
             if (!success || !existingAccount) return token;
 
@@ -81,10 +73,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             name: user.name!,
             email: user.email!,
             image: user.image!,
-            username:
-               account.provider === "github"
-                  ? (profile?.login as string)
-                  : (user.name?.toLowerCase() as string),
+            username: account.provider === "github" ? (profile?.login as string) : (user.name?.toLowerCase() as string),
          };
 
          const { success } = (await api.auth.oAuthSignIn({

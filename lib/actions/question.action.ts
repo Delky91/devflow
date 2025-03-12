@@ -249,7 +249,7 @@ export async function getQuestion(params: GetQuestionParams): Promise<ActionResp
  * @returns {Promise<ActionResponse<{ questions: Question[]; isNext: boolean }>>} - A promise that resolves to an action response containing the list of questions and a flag indicating if there are more questions.
  *
  * The function performs the following steps:
- * 1. Validates the input parameters using the provided schema and authorization.
+ * 1. Validates the input parameters using the provided schema.
  * 2. Extracts pagination and filter parameters from the validated input.
  * 3. Constructs a filter query based on the provided search query and filter type.
  * 4. Determines the sort criteria based on the filter type.
@@ -262,7 +262,7 @@ export async function getQuestion(params: GetQuestionParams): Promise<ActionResp
 export async function getQuestions(
    params: PaginatedSearchParams
 ): Promise<ActionResponse<{ questions: Question[]; isNext: boolean }>> {
-   const validationResult = await action({ params, schema: PaginatedSearchParamsSchema, isAuthorize: true });
+   const validationResult = await action({ params, schema: PaginatedSearchParamsSchema });
    if (validationResult instanceof Error) {
       return handleError(validationResult) as ErrorResponse;
    }
