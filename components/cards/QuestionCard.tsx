@@ -62,6 +62,7 @@ const QuestionCard = ({
                   value={upvotes}
                   title={" " + "votes"}
                   textStyles="small-medium text-dark400_light00"
+                  titleStyles="max-sm:hidden"
                />
 
                {/* answers */}
@@ -71,6 +72,7 @@ const QuestionCard = ({
                   value={answers}
                   title={" " + "answers"}
                   textStyles="small-medium text-dark400_light00"
+                  titleStyles="max-sm:hidden"
                />
 
                {/* views */}
@@ -80,6 +82,7 @@ const QuestionCard = ({
                   value={views}
                   title={" " + "views"}
                   textStyles="small-medium text-dark400_light00"
+                  titleStyles="max-sm:hidden"
                />
             </div>
          </div>
