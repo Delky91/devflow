@@ -36,6 +36,11 @@ export const EMPTY_TAGS = {
    },
 };
 
+export const EMPTY_ANSWERS = {
+   title: "No Answer Found",
+   message: "The answer box is empty. Maybe it’s waiting for your brilliant answer to get things rolling",
+};
+
 export const EMPTY_COLLECTIONS = {
    title: "Collections Are Empty",
    message: "Looks like you haven’t created any collections yet. Start curating something extraordinary today",

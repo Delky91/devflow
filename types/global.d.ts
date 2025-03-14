@@ -63,7 +63,7 @@ declare global {
       _id: string;
       content: string;
       author: Author;
-      createAt: Date;
+      createdAt: Date;
    }
 }
 
