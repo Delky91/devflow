@@ -10,7 +10,7 @@ import z from "zod";
 
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { toast } from "@/hooks/use-toast";
-import { CreateAnswer } from "@/lib/actions/answer.actions";
+import { createAnswer } from "@/lib/actions/answer.actions";
 import { AnswserSchema } from "@/lib/validations";
 
 import { Button } from "../ui/button";
@@ -35,7 +35,7 @@ const AnswerForm = ({ questionId }: { questionId: string }) => {
 
    const handleAnswerSubmit = async (values: z.infer<typeof AnswserSchema>) => {
       startAnsweringTransition(async () => {
-         const result = await CreateAnswer({
+         const result = await createAnswer({
             questionId,
             content: values.content,
          });

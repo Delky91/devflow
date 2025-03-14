@@ -26,8 +26,6 @@ declare global {
       createdAt: Date;
    }
 
-   
-
    type ActionResponse<T = null> = {
       success: boolean;
       data?: T;
@@ -59,6 +57,13 @@ declare global {
       query?: string;
       filter?: string;
       sort?: string;
+   }
+
+   interface Answer {
+      _id: string;
+      content: string;
+      author: Author;
+      createAt: Date;
    }
 }
 
