@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import React from "react";
 
 import TagCard from "@/components/cards/TagCard";
@@ -7,7 +8,7 @@ import Preview from "@/components/editor/Preview";
 import Metric from "@/components/metrics/Metric";
 import UserAvatar from "@/components/UserAvatar";
 import ROUTES from "@/constants/routes";
-import { getQuestion } from "@/lib/actions/question.action";
+import { getQuestion, incrementViews } from "@/lib/actions/question.action";
 import { formatNumber, getTimeStamp } from "@/lib/utils";
 
 const QuestionDetails = async ({ params }: RouteParams) => {
@@ -15,7 +16,15 @@ const QuestionDetails = async ({ params }: RouteParams) => {
    const { success, data: question } = await getQuestion({
       questionId: id,
    });
+
    if (!success || !question) return redirect("/404");
+
+   // Increment views after the component is rendered to avoid blocking the rendering process
+   after(async () => {
+      await incrementViews({
+         questionId: id,
+      });
+   });
 
    const { author, createdAt, answers, views, tags, content, title } = question;
 

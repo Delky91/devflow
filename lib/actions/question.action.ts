@@ -1,7 +1,9 @@
 "use server";
 
 import mongoose, { FilterQuery } from "mongoose";
+import { revalidatePath } from "next/cache";
 
+import ROUTES from "@/constants/routes";
 import { IQuestionDoc, Question } from "@/database/question.model";
 import { TagQuestion } from "@/database/tag-question.model";
 import { ITagDoc, Tag } from "@/database/tag.model";
@@ -334,11 +336,20 @@ export async function getQuestions(
    }
 }
 
+/**
+ * Increments the view count of a question.
+ *
+ * @param {IncrementViewsParams} params - The parameters required to increment the views.
+ * @returns {Promise<ActionResponse<{ views: number }>>} - A promise that resolves to an action response containing the updated view count.
+ *
+ * @throws {Error} - Throws an error if the question is not found or if there is an issue with the database operation.
+ */
 export async function incrementViews(params: IncrementViewsParams): Promise<ActionResponse<{ views: number }>> {
    const validationResult = await action({
       params,
       schema: IncrementViewsSchema,
    });
+
    if (validationResult instanceof Error) {
       return handleError(validationResult) as ErrorResponse;
    }
@@ -347,17 +358,19 @@ export async function incrementViews(params: IncrementViewsParams): Promise<Acti
 
    try {
       const question = await Question.findById(questionId);
+
       if (!question) {
          throw new Error("Question not found");
       }
-      // Increment the views count
+
       question.views += 1;
-      // Save the updated question document
+
       await question.save();
+
+      revalidatePath(ROUTES.QUESTION(questionId));
 
       return {
          success: true,
-         status: 200,
          data: { views: question.views },
       };
    } catch (error) {
