@@ -4,11 +4,13 @@ import { MDXEditorMethods } from "@mdxeditor/editor";
 import { ReloadIcon } from "@radix-ui/react-icons";
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import z from "zod";
 
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { toast } from "@/hooks/use-toast";
+import { CreateAnswer } from "@/lib/actions/answer.actions";
 import { AnswserSchema } from "@/lib/validations";
 
 import { Button } from "../ui/button";
@@ -18,8 +20,8 @@ const Editor = dynamic(() => import("@/components/editor/Editor"), {
    ssr: false,
 });
 
-const AnswerForm = () => {
-   const [isSubmitting, setIsSubmitting] = useState(false);
+const AnswerForm = ({ questionId }: { questionId: string }) => {
+   const [isAnswering, startAnsweringTransition] = useTransition();
    const [isAISubmitting, setIsAISubmitting] = useState(false);
 
    const editorRef = useRef<MDXEditorMethods>(null);
@@ -32,7 +34,28 @@ const AnswerForm = () => {
    });
 
    const handleAnswerSubmit = async (values: z.infer<typeof AnswserSchema>) => {
-      console.log("values", values);
+      startAnsweringTransition(async () => {
+         const result = await CreateAnswer({
+            questionId,
+            content: values.content,
+         });
+
+         if (!result.success) {
+            toast({
+               title: "Error",
+               description: result.error?.message,
+               variant: "destructive",
+            });
+            return;
+         }
+
+         form.reset();
+         toast({
+            title: "Success",
+            description: "Your answer has been posted.",
+            variant: "default",
+         });
+      });
    };
 
    return (
@@ -85,10 +108,10 @@ const AnswerForm = () => {
                   <Button
                      type="submit"
                      className="primary-gradient">
-                     {isSubmitting ? (
+                     {isAnswering ? (
                         <>
-                           <ReloadIcon className="mr-2 size-4 animate-spin" />
-                           Posting...
+                           <ReloadIcon className="mr-2 size-4 animate-spin text-light-900" />
+                           <p className="text-light-900">Posting...</p>
                         </>
                      ) : (
                         <p className="text-light-700">Post Answer</p>
