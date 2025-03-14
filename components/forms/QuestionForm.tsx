@@ -54,7 +54,7 @@ const QuestionForm = ({ question, isEdit = false }: QuestionFormParams) => {
                   description: "Your question has been edited successfully.",
                });
 
-               if (result.data) router.push(ROUTES.QUESTION(result.data._id));
+               if (result.data) router.push(ROUTES.QUESTION(result.data._id as string));
                else {
                   toast({
                      title: "Error",

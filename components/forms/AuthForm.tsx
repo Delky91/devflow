@@ -3,28 +3,14 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-   FieldValues,
-   useForm,
-   DefaultValues,
-   SubmitHandler,
-   Path,
-} from "react-hook-form";
+import { FieldValues, useForm, DefaultValues, SubmitHandler, Path } from "react-hook-form";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
-import {
-   Form,
-   FormControl,
-   FormField,
-   FormItem,
-   FormLabel,
-   FormMessage,
-} from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import ROUTES from "@/constants/routes";
 import { toast } from "@/hooks/use-toast";
-import { ActionResponse } from "@/types/global";
 
 interface AuthFormProps<T extends FieldValues> {
    schema: z.ZodType<T>;
@@ -33,12 +19,7 @@ interface AuthFormProps<T extends FieldValues> {
    formType: "SIGN_IN" | "SIGN_UP";
 }
 
-const AuthForm = <T extends FieldValues>({
-   schema,
-   defaultValues,
-   formType,
-   onSubmit,
-}: AuthFormProps<T>) => {
+const AuthForm = <T extends FieldValues>({ schema, defaultValues, formType, onSubmit }: AuthFormProps<T>) => {
    const router = useRouter();
    const form = useForm<z.infer<typeof schema>>({
       resolver: zodResolver(schema),
@@ -51,10 +32,7 @@ const AuthForm = <T extends FieldValues>({
       if (result?.success) {
          toast({
             title: "Success",
-            description:
-               formType === "SIGN_IN"
-                  ? "Signed in successfully"
-                  : "Signed up successfully",
+            description: formType === "SIGN_IN" ? "Signed in successfully" : "Signed up successfully",
          });
 
          router.push(ROUTES.HOME);
@@ -82,15 +60,11 @@ const AuthForm = <T extends FieldValues>({
                   render={({ field }) => (
                      <FormItem className="flex w-full flex-col gap-2.5">
                         <FormLabel className="paragraph-medium text-dark400_light700 capitalize">
-                           {field.name === "email"
-                              ? "Email Address"
-                              : field.name}
+                           {field.name === "email" ? "Email Address" : field.name}
                         </FormLabel>
                         <FormControl>
                            <Input
-                              type={
-                                 field.name === "password" ? "password" : "text"
-                              }
+                              type={field.name === "password" ? "password" : "text"}
                               required
                               {...field}
                               className="paragraph-regular background-light900_dark300 light-border-2 text-dark300_light700 no-focus min-h-12 rounded-1.5 border"
