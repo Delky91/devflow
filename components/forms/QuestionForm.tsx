@@ -5,7 +5,7 @@ import { MDXEditorMethods } from "@mdxeditor/editor";
 import { ReloadIcon } from "@radix-ui/react-icons";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import { useRef, useTransition } from "react";
+import React, { useRef, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -20,16 +20,15 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from "../ui/input";
 
 const Editor = dynamic(() => import("@/components/editor/Editor"), {
-   // Make sure we turn SSR off to avoid hydration mismatch
    ssr: false,
 });
 
-interface QuestionFormParams {
+interface Params {
    question?: Question;
    isEdit?: boolean;
 }
 
-const QuestionForm = ({ question, isEdit = false }: QuestionFormParams) => {
+const QuestionForm = ({ question, isEdit = false }: Params) => {
    const router = useRouter();
    const editorRef = useRef<MDXEditorMethods>(null);
    const [isPending, startTransition] = useTransition();
@@ -43,63 +42,8 @@ const QuestionForm = ({ question, isEdit = false }: QuestionFormParams) => {
       },
    });
 
-   const handleCreateQuestion = (data: z.infer<typeof AskQuestionSchema>) => {
-      startTransition(async () => {
-         if (isEdit && question) {
-            const result = await editQuestion({ questionId: question?._id, ...data });
-
-            if (result.success) {
-               toast({
-                  title: "Success",
-                  description: "Your question has been edited successfully.",
-               });
-
-               if (result.data) router.push(ROUTES.QUESTION(result.data._id as string));
-               else {
-                  toast({
-                     title: "Error",
-                     description: "Something went wrong while editing your question.",
-                     variant: "destructive",
-                  });
-               }
-            }
-            // needed to end the function when editing a question
-            return;
-         }
-
-         const result = await createQuestion(data);
-         if (result.success) {
-            toast({
-               title: "Success",
-               description: "Your question has been created successfully.",
-            });
-
-            if (result.data) router.push(ROUTES.QUESTION(result.data._id));
-            else {
-               toast({
-                  title: "Error",
-                  description: "Something went wrong while creating your question.",
-                  variant: "destructive",
-               });
-            }
-         }
-      });
-   };
-
-   const handleTagRemove = (tag: string, field: { value: string[] }) => {
-      const newTags = field.value.filter((t) => t !== tag);
-
-      form.setValue("tags", newTags);
-
-      if (newTags.length === 0) {
-         form.setError("tags", {
-            type: "required",
-            message: "At least one tag is required",
-         });
-      }
-   };
-
    const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, field: { value: string[] }) => {
+      console.log(field, e);
       if (e.key === "Enter") {
          e.preventDefault();
          const tagInput = e.currentTarget.value.trim();
@@ -110,24 +54,81 @@ const QuestionForm = ({ question, isEdit = false }: QuestionFormParams) => {
             form.clearErrors("tags");
          } else if (tagInput.length > 15) {
             form.setError("tags", {
-               type: "maxLength",
-               message: "Tag length should be less than 15 characters",
+               type: "manual",
+               message: "Tag should be less than 15 characters",
             });
          } else if (field.value.includes(tagInput)) {
             form.setError("tags", {
-               type: "duplicate",
+               type: "manual",
                message: "Tag already exists",
             });
          }
       }
    };
 
+   const handleTagRemove = (tag: string, field: { value: string[] }) => {
+      const newTags = field.value.filter((t) => t !== tag);
+
+      form.setValue("tags", newTags);
+
+      if (newTags.length === 0) {
+         form.setError("tags", {
+            type: "manual",
+            message: "Tags are required",
+         });
+      }
+   };
+
+   const handleCreateQuestion = async (data: z.infer<typeof AskQuestionSchema>) => {
+      startTransition(async () => {
+         if (isEdit && question) {
+            const result = await editQuestion({
+               questionId: question?._id,
+               ...data,
+            });
+
+            if (result.success) {
+               toast({
+                  title: "Success",
+                  description: "Question updated successfully",
+               });
+
+               if (result.data) router.push(ROUTES.QUESTION(result.data._id as string));
+            } else {
+               toast({
+                  title: `Error ${result.status}`,
+                  description: result.error?.message || "Something went wrong",
+                  variant: "destructive",
+               });
+            }
+
+            return;
+         }
+
+         const result = await createQuestion(data);
+
+         if (result.success) {
+            toast({
+               title: "Success",
+               description: "Question created successfully",
+            });
+
+            if (result.data) router.push(ROUTES.QUESTION(result.data._id));
+         } else {
+            toast({
+               title: `Error ${result.status}`,
+               description: result.error?.message || "Something went wrong",
+               variant: "destructive",
+            });
+         }
+      });
+   };
+
    return (
       <Form {...form}>
          <form
-            onSubmit={form.handleSubmit(handleCreateQuestion)}
-            className="flex w-full flex-col gap-10">
-            {/* title INPUT */}
+            className="flex w-full flex-col gap-10"
+            onSubmit={form.handleSubmit(handleCreateQuestion)}>
             <FormField
                control={form.control}
                name="title"
@@ -138,9 +139,7 @@ const QuestionForm = ({ question, isEdit = false }: QuestionFormParams) => {
                      </FormLabel>
                      <FormControl>
                         <Input
-                           type="text"
-                           placeholder="Enter your question title"
-                           className="paragraph-regular no-focus background-light700_dark300 light-border-2 text-dark300_light700 min-h-[56px] border"
+                           className="paragraph-regular background-light700_dark300 light-border-2 text-dark300_light700 no-focus min-h-[56px] border"
                            {...field}
                         />
                      </FormControl>
@@ -151,18 +150,15 @@ const QuestionForm = ({ question, isEdit = false }: QuestionFormParams) => {
                   </FormItem>
                )}
             />
-
-            {/* CONTENT INPUT */}
             <FormField
                control={form.control}
                name="content"
                render={({ field }) => (
                   <FormItem className="flex w-full flex-col">
                      <FormLabel className="paragraph-semibold text-dark400_light800">
-                        Detailed expalanation of your problem <span className="text-primary-500">*</span>
+                        Detailed explanation of your problem <span className="text-primary-500">*</span>
                      </FormLabel>
                      <FormControl>
-                        {/* Editor component  */}
                         <Editor
                            value={field.value}
                            editorRef={editorRef}
@@ -176,7 +172,6 @@ const QuestionForm = ({ question, isEdit = false }: QuestionFormParams) => {
                   </FormItem>
                )}
             />
-            {/* TAGS INPUT */}
             <FormField
                control={form.control}
                name="tags"
@@ -188,16 +183,13 @@ const QuestionForm = ({ question, isEdit = false }: QuestionFormParams) => {
                      <FormControl>
                         <div>
                            <Input
-                              type="text"
+                              className="paragraph-regular background-light700_dark300 light-border-2 text-dark300_light700 no-focus min-h-[56px] border"
                               placeholder="Add tags..."
                               onKeyDown={(e) => handleInputKeyDown(e, field)}
-                              className="paragraph-regular no-focus background-light700_dark300 light-border-2 text-dark300_light700 min-h-[56px] border"
                            />
-                           {/* map over the maps later */}
-
                            {field.value.length > 0 && (
-                              <div className="flex-start mt-2.5 flex flex-wrap gap-2.5">
-                                 {field.value.map((tag: string) => (
+                              <div className="flex-start mt-2.5 flex-wrap gap-2.5">
+                                 {field?.value?.map((tag: string) => (
                                     <TagCard
                                        key={tag}
                                        _id={tag}
@@ -212,14 +204,14 @@ const QuestionForm = ({ question, isEdit = false }: QuestionFormParams) => {
                            )}
                         </div>
                      </FormControl>
-                     <FormMessage />
                      <FormDescription className="body-regular mt-2.5 text-light-500">
-                        Add up to three tags to describe what your question is about. You need to press Enter to add a
-                        tag.
+                        Add up to 3 tags to describe what your question is about. You need to press enter to add a tag.
                      </FormDescription>
+                     <FormMessage />
                   </FormItem>
                )}
             />
+
             <div className="mt-16 flex justify-end">
                <Button
                   type="submit"
@@ -231,7 +223,7 @@ const QuestionForm = ({ question, isEdit = false }: QuestionFormParams) => {
                         <span>Submitting</span>
                      </>
                   ) : (
-                     <>{isEdit ? "Edit" : "Ask Question"}</>
+                     <>{isEdit ? "Edit" : "Ask a Question"}</>
                   )}
                </Button>
             </div>
