@@ -105,7 +105,7 @@ export async function createAnswer(params: CreateAnswerParams): Promise<ActionRe
  *
  * @throws Will return an error response if any database operation fails.
  */
-export async function getAnswers(params: GetAnswerParams): Promise<
+export async function getAnswers(params: GetAnswersParams): Promise<
    ActionResponse<{
       answers: Answer[];
       isNext: boolean;
