@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { after } from "next/server";
 import React from "react";
 
-import AllAnswer from "@/components/answers/AllAnswer";
+import AllAnswers from "@/components/answers/AllAnswer";
 import TagCard from "@/components/cards/TagCard";
 import Preview from "@/components/editor/Preview";
 import AnswerForm from "@/components/forms/AnswerForm";
@@ -14,30 +14,26 @@ import { getAnswers } from "@/lib/actions/answer.actions";
 import { getQuestion, incrementViews } from "@/lib/actions/question.action";
 import { formatNumber, getTimeStamp } from "@/lib/utils";
 
-const QuestionDetails = async ({ params }: RouteParams) => {
+const QuestionDetails = async ({ params, searchParams }: RouteParams) => {
    const { id } = await params;
-   const { success, data: question } = await getQuestion({
-      questionId: id,
-   });
+   const { page, pageSize, filter } = await searchParams;
+   const { success, data: question } = await getQuestion({ questionId: id });
 
-   // Increment views after the component is rendered to avoid blocking the rendering process
    after(async () => {
-      await incrementViews({
-         questionId: id,
-      });
+      await incrementViews({ questionId: id });
    });
 
    if (!success || !question) return redirect("/404");
 
    const {
-      success: answerSuccess,
-      data: answerResult,
-      error: answerError,
+      success: areAnswersLoaded,
+      data: answersResult,
+      error: answersError,
    } = await getAnswers({
       questionId: id,
-      page: 1,
-      pageSize: 10,
-      filter: "latest",
+      page: Number(page) || 1,
+      pageSize: Number(pageSize) || 10,
+      filter,
    });
 
    const { author, createdAt, answers, views, tags, content, title } = question;
@@ -52,37 +48,33 @@ const QuestionDetails = async ({ params }: RouteParams) => {
                      name={author.name}
                      className="size-[22px]"
                      fallbackClassName="text-[10px]"
-                     imageUrl={author.image as string}
                   />
                   <Link href={ROUTES.PROFILE(author._id)}>
                      <p className="paragraph-semibold text-dark300_light700">{author.name}</p>
                   </Link>
                </div>
-
-               <div className="flex justify-end">
-                  <p>Votes</p>
-               </div>
             </div>
+
             <h2 className="h2-semibold text-dark200_light900 mt-3.5 w-full">{title}</h2>
          </div>
 
          <div className="mb-8 mt-5 flex flex-wrap gap-4">
             <Metric
-               imgUrl={"/icons/clock.svg"}
+               imgUrl="/icons/clock.svg"
                alt="clock icon"
                value={` asked ${getTimeStamp(new Date(createdAt))}`}
                title=""
                textStyles="small-regular text-dark400_light700"
             />
             <Metric
-               imgUrl={"/icons/message.svg"}
+               imgUrl="/icons/message.svg"
                alt="message icon"
                value={answers}
                title=""
                textStyles="small-regular text-dark400_light700"
             />
             <Metric
-               imgUrl={"/icons/eye.svg"}
+               imgUrl="/icons/eye.svg"
                alt="eye icon"
                value={formatNumber(views)}
                title=""
@@ -97,23 +89,27 @@ const QuestionDetails = async ({ params }: RouteParams) => {
                <TagCard
                   key={tag._id}
                   _id={tag._id as string}
-                  name={tag.name as string}
+                  name={tag.name}
                   compact
                />
             ))}
          </div>
 
          <section className="my-5">
-            <AllAnswer
-               data={answerResult?.answers}
-               success={answerSuccess}
-               error={answerError}
-               totalAnswers={answerResult?.totalAnswer}
+            <AllAnswers
+               data={answersResult?.answers}
+               success={areAnswersLoaded}
+               error={answersError}
+               totalAnswers={answersResult?.totalAnswer || 0}
             />
          </section>
 
          <section className="my-5">
-            <AnswerForm questionId={question._id} />
+            <AnswerForm
+               questionId={question._id}
+               questionTitle={question.title}
+               questionContent={question.content}
+            />
          </section>
       </>
    );

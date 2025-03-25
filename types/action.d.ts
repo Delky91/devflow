@@ -30,7 +30,6 @@ interface GetQuestionParams {
    questionId: string;
 }
 
-// inheritance from PaginatedSearchParams omiting filter and adding tag
 interface GetTagQuestionsParams extends Omit<PaginatedSearchParams, "filter"> {
    tagId: string;
 }
@@ -44,6 +43,43 @@ interface CreateAnswerParams {
    content: string;
 }
 
-interface GetAnswerParams extends PaginatedSearchParams {
+interface GetAnswersParams extends PaginatedSearchParams {
    questionId: string;
+}
+
+interface CreateVoteParams {
+   targetId: string;
+   targetType: "question" | "answer";
+   voteType: "upvote" | "downvote";
+}
+
+interface UpdateVoteCountParams extends CreateVoteParams {
+   change: 1 | -1;
+}
+
+type HasVotedParams = Pick<CreateVoteParams, "targetId" | "targetType">;
+
+interface HasVotedResponse {
+   hasUpvoted: boolean;
+   hasDownvoted: boolean;
+}
+
+interface CollectionBaseParams {
+   questionId: string;
+}
+
+interface GetUserParams {
+   userId: string;
+}
+
+interface GetUserQuestionsParams extends Omit<PaginatedSearchParams, "query" | "filter" | "sort"> {
+   userId: string;
+}
+
+interface GetUserAnswersParams extends PaginatedSearchParams {
+   userId: string;
+}
+
+interface GetUserTagsParams {
+   userId: string;
 }
